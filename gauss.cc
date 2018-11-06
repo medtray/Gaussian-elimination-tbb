@@ -10,6 +10,7 @@
 #include <iostream>
 #include <fstream>
 #include<string>
+#include <immintrin.h>
 
 
 using namespace tbb;
@@ -191,19 +192,32 @@ void parallelGauss(matrix_t &A, vector_t &B, vector_t &X, int NThreads, int grai
       [&](const blocked_range<size_t>& r) {
                       for (unsigned k=r.begin(); k!=r.end(); k++ ){  
                 double c = -A[k][i] / A[i][i];
-                 
-                __m256d* krow = (__m256d*)(A[k]+i+1);
-                __m256d* irow = (__m256d*)(A[i]+i+1);
                 A[k][i]=0;
                 B[k] += c * B[i];
+                 
+                 //use this part if you can compile AVX registers operations (like icpc)
+                 __m256d* krow = (__m256d*)(A[k]+i+1);
+                __m256d* irow = (__m256d*)(A[i]+i+1);
+               
                 for (int j = 0; j < (A.getSize()-i-1)/4; ++j)
                 {
                   krow[j] = _mm256_add_pd(krow[j], _mm256_mul_pd(irow[j], _mm256_set_pd(c,c,c,c)));  
                 }
                 for(int j = 0; j < (A.getSize() - i - 1) % 4; ++j)
-                  A[k][A.getSize() - 1 - j] += c * A[i][A.getSize() - 1 - j];
+                  A[k][A.getSize() - 1 - j] += c * A[i][A.getSize() - 1 - j];  
+
+                //use this part for simple operations (compile with g++)   
+
+                 
+                  /*  for (unsigned j = i+1; j < A.getSize(); ++j)
+                {
+                  
+                    A[k][j] += c * A[i][j];
+                }   */
+                
+              }
               } 
-                  }
+                  
     ,simple_partitioner());
 
   }

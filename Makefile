@@ -20,8 +20,8 @@ DFILES       = $(patsubst %.o, %.d, $(ALLOFILES))
 # Basic tool configuration for GCC/G++.
 #
 # Note: These lines will require some changes in order to work with TBB
-CXX      = g++
-LD       = g++
+CXX      = icpc
+LD       = icpc
 CXXFLAGS = -MMD -O3 -m$(BITS) -ggdb -std=c++1y -Wall -L /usr/local/tbb -ltbb
 LDFLAGS  = -m$(BITS) -lm -std=c++1y -Wall -L /usr/local/tbb -ltbb
 
